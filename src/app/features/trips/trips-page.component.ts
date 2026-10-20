@@ -1,19 +1,25 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TripStore } from '../../data-access/trip.store';
 import { TripCardComponent } from './components/trip-card/trip-card.component';
+import { TripFormModalComponent } from './components/trip-form-modal/trip-form-modal.component';
 import { Season, Trip } from '../../models/trip.model';
 
 @Component({
   selector: 'app-trips-page',
   standalone: true,
-  imports: [CommonModule, TripCardComponent],
+  imports: [CommonModule, TripCardComponent, TripFormModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="page-container">
       <header class="header-section">
-        <h1>Travel Diary & Guide</h1>
-        <p>Curated itineraries, route bottlenecks, and packing essentials from real travels.</p>
+        <div class="header-title-wrap">
+          <h1>Travel Diary & Guide</h1>
+          <p>Curated itineraries, route bottlenecks, and packing essentials from real travels.</p>
+        </div>
+        <button type="button" class="btn-primary" (click)="openModal()">
+          + Log Journey
+        </button>
       </header>
 
       <!-- Filter & Search Controls Bar -->
@@ -87,6 +93,13 @@ import { Season, Trip } from '../../models/trip.model';
           <button type="button" class="reset-btn" (click)="resetFilters(searchInput)">Clear Filters</button>
         </div>
       </section>
+
+      <!-- New Trip Modal -->
+      <app-trip-form-modal
+        *ngIf="isModalOpen()"
+        (close)="closeModal()"
+        (save)="onTripCreated($event)"
+      />
     </main>
   `,
   styles: [`
@@ -97,17 +110,46 @@ import { Season, Trip } from '../../models/trip.model';
     }
 
     .header-section {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1.5rem;
       margin-bottom: 2rem;
 
-      h1 {
-        font-size: 2.2rem;
-        color: #0f172a;
-        margin-bottom: 0.5rem;
+      .header-title-wrap {
+        h1 {
+          font-size: 2.2rem;
+          color: #0f172a;
+          margin-bottom: 0.5rem;
+        }
+
+        p {
+          color: #64748b;
+          font-size: 1.1rem;
+        }
       }
 
-      p {
-        color: #64748b;
-        font-size: 1.1rem;
+      .btn-primary {
+        background: #2563eb;
+        color: #ffffff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.1s ease;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+
+        &:hover {
+          background: #1d4ed8;
+          transform: translateY(-1px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
       }
     }
 
@@ -279,6 +321,8 @@ import { Season, Trip } from '../../models/trip.model';
 export class TripsPageComponent implements OnInit {
   protected readonly store = inject(TripStore);
 
+  readonly isModalOpen = signal<boolean>(false);
+
   readonly seasons: (Season | 'ALL')[] = [
     'ALL',
     'spring',
@@ -289,6 +333,14 @@ export class TripsPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.loadTrips();
+  }
+
+  openModal(): void {
+    this.isModalOpen.set(true);
+  }
+
+  closeModal(): void {
+    this.isModalOpen.set(false);
   }
 
   onSearch(query: string): void {
@@ -305,6 +357,11 @@ export class TripsPageComponent implements OnInit {
     input.value = '';
     this.store.setSeason('ALL');
     this.store.setSearchQuery('');
+  }
+
+  onTripCreated(newTrip: Trip): void {
+    this.store.addTrip(newTrip);
+    this.closeModal();
   }
 
   trackTripId(index: number, trip: Trip): string {
