@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TripStore } from '../../data-access/trip.store';
 import { TripCardComponent } from './components/trip-card/trip-card.component';
 import { TripFormModalComponent } from './components/trip-form-modal/trip-form-modal.component';
-import { Season, Trip } from '../../models/trip.model';
+import { Season, Trip, Currency } from '../../models/trip.model';
 
 @Component({
   selector: 'app-trips-page',
@@ -17,9 +17,25 @@ import { Season, Trip } from '../../models/trip.model';
           <h1>Travel Diary & Guide</h1>
           <p>Curated itineraries, route bottlenecks, and packing essentials from real travels.</p>
         </div>
-        <button type="button" class="btn-primary" (click)="openModal()">
-          + Log Journey
-        </button>
+
+        <div class="header-actions">
+          <!-- Currency Toggle Switcher -->
+          <div class="currency-toggle">
+            <button
+              *ngFor="let curr of currencies"
+              type="button"
+              class="curr-btn"
+              [class.active]="store.activeCurrency() === curr"
+              (click)="store.setCurrency(curr)"
+            >
+              {{ curr }}
+            </button>
+          </div>
+
+          <button type="button" class="btn-primary" (click)="openModal()">
+            + Log Journey
+          </button>
+        </div>
       </header>
 
       <!-- Filter & Search Controls Bar -->
@@ -94,7 +110,7 @@ import { Season, Trip } from '../../models/trip.model';
         </div>
       </section>
 
-      <!-- New Trip Modal -->
+      <!-- Journey Modal -->
       <app-trip-form-modal
         *ngIf="isModalOpen()"
         (close)="closeModal()"
@@ -130,11 +146,47 @@ import { Season, Trip } from '../../models/trip.model';
         }
       }
 
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .currency-toggle {
+          display: flex;
+          background: #f1f5f9;
+          padding: 3px;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+
+          .curr-btn {
+            background: none;
+            border: none;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #64748b;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+
+            &:hover {
+              color: #0f172a;
+            }
+
+            &.active {
+              background: #ffffff;
+              color: #0f172a;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+          }
+        }
+      }
+
       .btn-primary {
         background: #2563eb;
         color: #ffffff;
         border: none;
-        padding: 0.75rem 1.5rem;
+        padding: 0.7rem 1.4rem;
         border-radius: 10px;
         font-weight: 700;
         font-size: 0.95rem;
@@ -322,6 +374,7 @@ export class TripsPageComponent implements OnInit {
   protected readonly store = inject(TripStore);
 
   readonly isModalOpen = signal<boolean>(false);
+  readonly currencies: Currency[] = ['INR', 'USD', 'EUR'];
 
   readonly seasons: (Season | 'ALL')[] = [
     'ALL',

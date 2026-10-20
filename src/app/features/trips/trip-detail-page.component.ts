@@ -49,7 +49,7 @@ import { SeasonBadgeComponent } from '../../shared/ui/season-badge/season-badge.
             </div>
             <div class="meta-item" *ngIf="currentTrip.budget as b">
               <span class="label">Est. Budget</span>
-              <span class="value">{{ b.currency }} {{ b.amount | number }}</span>
+              <span class="value">{{ store.formatBudget(b.amount, b.currency) }}</span>
             </div>
             <div class="meta-item">
               <span class="label">Season</span>
@@ -127,7 +127,7 @@ import { SeasonBadgeComponent } from '../../shared/ui/season-badge/season-badge.
               </li>
               <li *ngIf="currentTrip.budget as b">
                 <span class="label">Est. Total:</span>
-                <span class="val">{{ b.currency }} {{ b.amount | number }}</span>
+                <span class="val">{{ store.formatBudget(b.amount, b.currency) }}</span>
               </li>
             </ul>
           </div>

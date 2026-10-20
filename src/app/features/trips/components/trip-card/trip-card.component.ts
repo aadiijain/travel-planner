@@ -1,8 +1,9 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Trip } from '../../../../models/trip.model';
 import { SeasonBadgeComponent } from '../../../../shared/ui/season-badge/season-badge.component';
+import { TripStore } from '../../../../data-access/trip.store';
 
 @Component({
   selector: 'app-trip-card',
@@ -28,7 +29,9 @@ import { SeasonBadgeComponent } from '../../../../shared/ui/season-badge/season-
         </div>
 
         <div class="card-footer">
-          <span *ngIf="trip.budget as b" class="budget">{{ b.currency }} {{ b.amount | number }}</span>
+          <span *ngIf="trip.budget as b" class="budget">
+            {{ store.formatBudget(b.amount, b.currency) }}
+          </span>
           <a [routerLink]="['/trips', trip.id]" class="view-btn">View Journey &rarr;</a>
         </div>
       </div>
@@ -149,8 +152,10 @@ import { SeasonBadgeComponent } from '../../../../shared/ui/season-badge/season-
 })
 export class TripCardComponent {
   @Input({ required: true }) trip!: Trip;
+  protected readonly store = inject(TripStore);
 
   onImgFallback(e: Event) {
-    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80';
+    (e.target as HTMLImageElement).src =
+      'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80';
   }
 }

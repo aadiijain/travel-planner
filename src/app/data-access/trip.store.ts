@@ -1,8 +1,16 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { TripApiService } from './trip-api.service';
-import { Trip, Season } from '../models/trip.model';
+import { Trip, Season, Currency } from '../models/trip.model';
 
 const STORAGE_KEY = 'wanderlog_trips_data';
+const CURRENCY_KEY = 'wanderlog_selected_currency';
+
+// Baseline exchange rates relative to 1 INR
+const RATES_FROM_INR: Record<Currency, number> = {
+  INR: 1,
+  USD: 0.012,
+  EUR: 0.011
+};
 
 @Injectable({
   providedIn: 'root'
@@ -15,9 +23,12 @@ export class TripStore {
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
 
-  // Filter Signals
+  // Filter & Preference Signals
   readonly selectedSeason = signal<Season | 'ALL'>('ALL');
   readonly searchQuery = signal<string>('');
+  readonly activeCurrency = signal<Currency>(
+    (localStorage.getItem(CURRENCY_KEY) as Currency) || 'INR'
+  );
 
   // Computed Signal: Filtered trips based on season & search query
   readonly filteredTrips = computed(() => {
@@ -43,7 +54,6 @@ export class TripStore {
   loadTrips(): void {
     if (this.trips().length > 0) return;
 
-    // Check localStorage first
     const cached = localStorage.getItem(STORAGE_KEY);
     if (cached) {
       try {
@@ -81,12 +91,37 @@ export class TripStore {
     this.searchQuery.set(query);
   }
 
+  setCurrency(curr: Currency): void {
+    this.activeCurrency.set(curr);
+    localStorage.setItem(CURRENCY_KEY, curr);
+  }
+
   addTrip(trip: Trip): void {
     this.trips.update((existing) => {
       const updated = [trip, ...existing];
       this.saveToStorage(updated);
       return updated;
     });
+  }
+
+  /**
+   * Converts any budget into the target active currency and formats it cleanly.
+   */
+  formatBudget(amount: number, fromCurrency: Currency): string {
+    const target = this.activeCurrency();
+    if (fromCurrency === target) {
+      return `${target} ${amount.toLocaleString()}`;
+    }
+
+    // Step 1: Normalize source amount to INR
+    const sourceRate = RATES_FROM_INR[fromCurrency] || 1;
+    const amountInInr = amount / sourceRate;
+
+    // Step 2: Convert from INR to target currency
+    const targetRate = RATES_FROM_INR[target] || 1;
+    const converted = Math.round(amountInInr * targetRate);
+
+    return `${target} ${converted.toLocaleString()}`;
   }
 
   private saveToStorage(data: Trip[]): void {
