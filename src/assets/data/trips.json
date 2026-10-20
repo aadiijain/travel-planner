@@ -1,0 +1,166 @@
+[
+  {
+    "id": "meghalaya-abode-of-clouds",
+    "title": "Meghalaya: Abode of Clouds",
+    "tagline": "Living root bridges, crystal rivers and misty waterfalls",
+    "summary": "A five-day loop through Shillong, Cherrapunji and the Dawki border, built around the Nongriat root bridge trek and the clearest river in India.",
+    "destination": {
+      "region": "Meghalaya",
+      "country": "India",
+      "coordinates": { "lat": 25.5788, "lng": 91.8933 }
+    },
+    "startDate": "2026-11-10",
+    "endDate": "2026-11-14",
+    "season": "autumn",
+    "difficulty": "moderate",
+    "coverImage": "https://images.unsplash.com/photo-1626014303757-65644775be41?auto=format&fit=crop&w=800&q=80",
+    "budget": { "amount": 28000, "currency": "INR" },
+    "tags": ["waterfalls", "trekking", "culture", "northeast-india"],
+    "itinerary": [
+      {
+        "id": "meg-d1-01",
+        "dayNumber": 1,
+        "title": "Fly into Guwahati, drive to Shillong",
+        "type": "transport",
+        "location": "Guwahati to Shillong",
+        "startTime": "10:00",
+        "notes": "Roughly 3 hours by shared cab or taxi from the airport.",
+        "essentials": ["Government photo ID", "Power bank", "Light fleece"]
+      },
+      {
+        "id": "meg-d1-02",
+        "dayNumber": 1,
+        "title": "Evening at Police Bazaar",
+        "type": "food",
+        "location": "Shillong",
+        "startTime": "18:30",
+        "notes": "Try jadoh and dohneiiong at a local Khasi eatery.",
+        "essentials": ["Cash for small vendors"]
+      },
+      {
+        "id": "meg-d2-01",
+        "dayNumber": 2,
+        "title": "Double Decker Living Root Bridge trek",
+        "type": "hiking",
+        "location": "Nongriat",
+        "startTime": "07:30",
+        "notes": "Around 3,500 steps each way. Start early and carry water.",
+        "essentials": [
+          "Trekking shoes",
+          "Rain jacket",
+          "Reusable water bottle",
+          "Swimwear",
+          "Quick-dry towel"
+        ]
+      },
+      {
+        "id": "meg-d2-02",
+        "dayNumber": 2,
+        "title": "Nohkalikai Falls viewpoint",
+        "type": "sightseeing",
+        "location": "Cherrapunji",
+        "startTime": "13:00",
+        "notes": "Views depend on cloud cover; go early afternoon if clear.",
+        "essentials": ["Rain jacket", "Camera"]
+      },
+      {
+        "id": "meg-d3-01",
+        "dayNumber": 3,
+        "title": "Boat ride on the Umngot River",
+        "type": "adventure",
+        "location": "Dawki",
+        "startTime": "11:00",
+        "notes": "Water clarity is best in the dry season.",
+        "essentials": ["Sunglasses", "Sunscreen", "Dry bag"]
+      }
+    ]
+  },
+  {
+    "id": "annapurna-base-camp-trek",
+    "title": "Annapurna Base Camp Trek",
+    "tagline": "Ten days from Pokhara to a Himalayan amphitheatre",
+    "summary": "Teahouse trekking through rhododendron forests and the Modi Khola gorge to Annapurna Base Camp at 4,130 m.",
+    "destination": {
+      "region": "Annapurna Conservation Area, Gandaki",
+      "country": "Nepal",
+      "coordinates": { "lat": 28.53, "lng": 83.878 }
+    },
+    "startDate": "2027-04-05",
+    "endDate": "2027-04-14",
+    "season": "spring",
+    "difficulty": "challenging",
+    "coverImage": "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80",
+    "budget": { "amount": 1100, "currency": "USD" },
+    "tags": ["trekking", "high-altitude", "teahouse", "himalaya"],
+    "itinerary": [
+      {
+        "id": "abc-d1-01",
+        "dayNumber": 1,
+        "title": "Drive Pokhara to Nayapul",
+        "type": "transport",
+        "location": "Pokhara to Nayapul",
+        "startTime": "07:00",
+        "notes": "Permit checkpoint at the trailhead.",
+        "essentials": [
+          "Passport",
+          "Trekking permits (ACAP + TIMS)",
+          "Passport photos"
+        ]
+      },
+      {
+        "id": "abc-d1-02",
+        "dayNumber": 1,
+        "title": "Trek to Ghandruk",
+        "type": "hiking",
+        "location": "Ghandruk",
+        "startTime": "10:30",
+        "notes": "Long stone staircases. Roughly 4 to 5 hours.",
+        "essentials": [
+          "Broken-in trekking boots",
+          "Trekking poles",
+          "Sunscreen SPF 50+",
+          "Reusable water bottle"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "himachal-pine-and-peaks",
+    "title": "Himachal: Pine & Peaks",
+    "tagline": "Hill stations, high passes and the Parvati Valley",
+    "summary": "A seven-day summer circuit from Chandigarh through Shimla and Manali, across the Atal Tunnel into Lahaul.",
+    "destination": {
+      "region": "Himachal Pradesh",
+      "country": "India",
+      "coordinates": { "lat": 32.2396, "lng": 77.1887 }
+    },
+    "startDate": "2027-06-06",
+    "endDate": "2027-06-12",
+    "season": "summer",
+    "difficulty": "moderate",
+    "coverImage": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
+    "budget": { "amount": 32000, "currency": "INR" },
+    "tags": ["mountains", "road-trip", "trekking", "hill-stations"],
+    "itinerary": [
+      {
+        "id": "hp-d1-01",
+        "dayNumber": 1,
+        "title": "Drive Chandigarh to Shimla",
+        "type": "transport",
+        "location": "Chandigarh to Shimla",
+        "startTime": "09:00",
+        "notes": "About 4 hours. Hill roads are winding.",
+        "essentials": ["Light woolens", "Motion sickness tablets"]
+      },
+      {
+        "id": "hp-d1-02",
+        "dayNumber": 1,
+        "title": "Mall Road and Ridge walk",
+        "type": "leisure",
+        "location": "Shimla",
+        "startTime": "17:00",
+        "essentials": ["Comfortable walking shoes"]
+      }
+    ]
+  }
+]
