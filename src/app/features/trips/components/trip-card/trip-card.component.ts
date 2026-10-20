@@ -35,9 +35,16 @@ import { SeasonBadgeComponent } from '../../../../shared/ui/season-badge/season-
     </article>
   `,
   styles: [`
+    :host {
+      display: flex;
+      height: 100%;
+    }
+
     .trip-card {
       display: flex;
       flex-direction: column;
+      width: 100%;
+      height: 100%;
       border-radius: 12px;
       overflow: hidden;
       background: #ffffff;
@@ -80,6 +87,7 @@ import { SeasonBadgeComponent } from '../../../../shared/ui/season-badge/season-
         text-transform: uppercase;
         color: #64748b;
         letter-spacing: 0.05em;
+        min-height: 2.2em;
       }
 
       h3 {
@@ -115,6 +123,7 @@ import { SeasonBadgeComponent } from '../../../../shared/ui/season-badge/season-
         display: flex;
         align-items: center;
         justify-content: space-between;
+        margin-top: auto;
         padding-top: 1rem;
         border-top: 1px solid #f1f5f9;
 
