@@ -1,13 +1,15 @@
-import { Component, OnInit, inject, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, computed, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TripStore } from '../../data-access/trip.store';
 import { SeasonBadgeComponent } from '../../shared/ui/season-badge/season-badge.component';
+import { TripFormModalComponent } from './components/trip-form-modal/trip-form-modal.component';
+import { Trip } from '../../models/trip.model';
 
 @Component({
   selector: 'app-trip-detail-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, SeasonBadgeComponent],
+  imports: [CommonModule, RouterLink, SeasonBadgeComponent, TripFormModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <!-- Loading State -->
@@ -19,6 +21,16 @@ import { SeasonBadgeComponent } from '../../shared/ui/season-badge/season-badge.
     <main class="detail-container" *ngIf="!store.loading() && trip() as currentTrip">
       <nav class="back-nav">
         <a routerLink="/trips" class="back-link">&larr; Back to all journeys</a>
+
+        <!-- Edit & Delete Actions -->
+        <div class="action-buttons">
+          <button type="button" class="btn-edit" (click)="isEditModalOpen.set(true)">
+            ✎ Edit
+          </button>
+          <button type="button" class="btn-delete" (click)="onDeleteTrip(currentTrip.id, currentTrip.title)">
+            🗑 Delete
+          </button>
+        </div>
       </nav>
 
       <!-- Hero Header -->
@@ -133,6 +145,14 @@ import { SeasonBadgeComponent } from '../../shared/ui/season-badge/season-badge.
           </div>
         </aside>
       </div>
+
+      <!-- Edit Modal -->
+      <app-trip-form-modal
+        *ngIf="isEditModalOpen()"
+        [tripToEdit]="currentTrip"
+        (close)="isEditModalOpen.set(false)"
+        (save)="onUpdateTrip($event)"
+      />
     </main>
 
     <!-- Not Found State -->
@@ -157,6 +177,9 @@ import { SeasonBadgeComponent } from '../../shared/ui/season-badge/season-badge.
     }
 
     .back-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 1.5rem;
 
       .back-link {
@@ -172,6 +195,45 @@ import { SeasonBadgeComponent } from '../../shared/ui/season-badge/season-badge.
         &:hover {
           color: #1d4ed8;
           text-decoration: underline;
+        }
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 0.6rem;
+
+        button {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          padding: 0.45rem 0.85rem;
+          font-size: 0.85rem;
+          font-weight: 600;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+
+        .btn-edit {
+          background: #f1f5f9;
+          border: 1px solid #cbd5e1;
+          color: #334155;
+
+          &:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+          }
+        }
+
+        .btn-delete {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #dc2626;
+
+          &:hover {
+            background: #fee2e2;
+            color: #b91c1c;
+          }
         }
       }
     }
@@ -556,7 +618,9 @@ import { SeasonBadgeComponent } from '../../shared/ui/season-badge/season-badge.
 export class TripDetailPageComponent implements OnInit {
   protected readonly store = inject(TripStore);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
+  readonly isEditModalOpen = signal<boolean>(false);
   private tripId = this.route.snapshot.paramMap.get('id') ?? '';
 
   readonly trip = computed(() => {
@@ -567,6 +631,19 @@ export class TripDetailPageComponent implements OnInit {
   ngOnInit(): void {
     if (this.store.trips().length === 0) {
       this.store.loadTrips();
+    }
+  }
+
+  onUpdateTrip(updatedTrip: Trip): void {
+    this.store.updateTrip(updatedTrip);
+    this.isEditModalOpen.set(false);
+  }
+
+  onDeleteTrip(id: string, title: string): void {
+    const confirmed = window.confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`);
+    if (confirmed) {
+      this.store.deleteTrip(id);
+      this.router.navigate(['/trips']);
     }
   }
 

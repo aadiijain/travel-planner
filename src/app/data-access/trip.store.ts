@@ -104,6 +104,22 @@ export class TripStore {
     });
   }
 
+  updateTrip(updatedTrip: Trip): void {
+    this.trips.update((existing) => {
+      const updated = existing.map((t) => (t.id === updatedTrip.id ? updatedTrip : t));
+      this.saveToStorage(updated);
+      return updated;
+    });
+  }
+
+  deleteTrip(tripId: string): void {
+    this.trips.update((existing) => {
+      const updated = existing.filter((t) => t.id !== tripId);
+      this.saveToStorage(updated);
+      return updated;
+    });
+  }
+
   /**
    * Converts any budget into the target active currency and formats it cleanly.
    */

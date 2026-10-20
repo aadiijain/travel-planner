@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   AbstractControl,
@@ -63,8 +63,10 @@ const PRESET_IMAGES: PresetImage[] = [
       <div class="modal-dialog">
         <header class="modal-header">
           <div>
-            <h2>Log a Journey</h2>
-            <p class="subtitle">Record highlights, routes, and day-by-day stops from a vacation.</p>
+            <h2>{{ tripToEdit ? 'Edit Journey' : 'Log a Journey' }}</h2>
+            <p class="subtitle">
+              {{ tripToEdit ? 'Update details, highlights, or stops for this trip.' : 'Record highlights, routes, and day-by-day stops from a vacation.' }}
+            </p>
           </div>
           <button type="button" class="close-btn" (click)="close.emit()">&times;</button>
         </header>
@@ -320,7 +322,7 @@ const PRESET_IMAGES: PresetImage[] = [
           <footer class="modal-footer">
             <button type="button" class="btn-cancel" (click)="close.emit()">Cancel</button>
             <button type="submit" class="btn-submit" [disabled]="form.invalid">
-              Save to Diary
+              {{ tripToEdit ? 'Save Changes' : 'Save to Diary' }}
             </button>
           </footer>
         </form>
@@ -762,6 +764,7 @@ const PRESET_IMAGES: PresetImage[] = [
   `]
 })
 export class TripFormModalComponent implements OnInit, OnDestroy {
+  @Input() tripToEdit: Trip | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<Trip>();
 
@@ -783,9 +786,9 @@ export class TripFormModalComponent implements OnInit, OnDestroy {
       budgetCurrency: ['INR' as Currency, Validators.required],
       coverImage: [PRESET_IMAGES[0].url, Validators.required],
       tags: [''],
-     stops: this.fb.array([
-  this.createStopGroup(1, '', 'transport', '', '', '')
-])
+      stops: this.fb.array([
+        this.createStopGroup(1, '', 'transport', '', '', '')
+      ])
     },
     { validators: [dateRangeValidator] }
   );
@@ -826,6 +829,44 @@ export class TripFormModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     document.body.style.overflow = 'hidden';
+
+    if (this.tripToEdit) {
+      this.patchTripData(this.tripToEdit);
+    }
+  }
+
+  private patchTripData(t: Trip): void {
+    this.form.patchValue({
+      title: t.title,
+      tagline: t.tagline,
+      summary: t.summary,
+      region: t.destination.region,
+      country: t.destination.country,
+      startDate: t.startDate,
+      endDate: t.endDate,
+      season: t.season,
+      difficulty: t.difficulty,
+      budgetAmount: t.budget?.amount ?? null,
+      budgetCurrency: t.budget?.currency ?? 'INR',
+      coverImage: t.coverImage,
+      tags: t.tags.join(', ')
+    });
+
+    if (t.itinerary && t.itinerary.length > 0) {
+      this.stopsArray.clear();
+      t.itinerary.forEach((st) => {
+        this.stopsArray.push(
+          this.createStopGroup(
+            st.dayNumber,
+            st.title,
+            st.type,
+            st.location || '',
+            st.notes || '',
+            (st.essentials || []).join(', ')
+          )
+        );
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -897,11 +938,10 @@ export class TripFormModalComponent implements OnInit, OnDestroy {
         : []
     }));
 
-    // Sort stops logically by dayNumber
     parsedStops.sort((a, b) => a.dayNumber - b.dayNumber);
 
     const newTrip: Trip = {
-      id: `${slug}-${Date.now().toString().slice(-4)}`,
+      id: this.tripToEdit ? this.tripToEdit.id : `${slug}-${Date.now().toString().slice(-4)}`,
       title: val.title.trim(),
       tagline: val.tagline.trim(),
       summary: val.summary.trim(),
