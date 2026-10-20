@@ -19,12 +19,27 @@ import { Season, Trip } from '../../models/trip.model';
       <!-- Filter & Search Controls Bar -->
       <section class="controls-bar">
         <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+          </svg>
+
           <input
+            #searchInput
             type="text"
             placeholder="Search destination, keyword, tag..."
             [value]="store.searchQuery()"
-            (input)="onSearch($event)"
+            (input)="onSearch(searchInput.value)"
           />
+
+          <button
+            *ngIf="store.searchQuery()"
+            type="button"
+            class="clear-search-btn"
+            title="Clear search"
+            (click)="clearSearch(searchInput)"
+          >
+            &times;
+          </button>
         </div>
 
         <div class="season-filters">
@@ -35,10 +50,22 @@ import { Season, Trip } from '../../models/trip.model';
             [class.active]="store.selectedSeason() === s"
             (click)="store.setSeason(s)"
           >
-            {{ s }}
+            {{ s | uppercase }}
           </button>
         </div>
       </section>
+
+      <!-- Results Feedback Counter -->
+      <div
+        *ngIf="!store.loading() && !store.error() && (store.searchQuery() || store.selectedSeason() !== 'ALL')"
+        class="filter-summary"
+      >
+        <span>
+          Showing <strong>{{ store.filteredTrips().length }}</strong> of {{ store.trips().length }} journeys
+          <span *ngIf="store.searchQuery()">for "<em>{{ store.searchQuery() }}</em>"</span>
+        </span>
+        <button type="button" class="clear-all-link" (click)="resetFilters(searchInput)">Reset all</button>
+      </div>
 
       <!-- Loading / Error States -->
       <div *ngIf="store.loading()" class="state-message">
@@ -56,8 +83,8 @@ import { Season, Trip } from '../../models/trip.model';
           [trip]="trip"
         />
         <div *ngIf="store.filteredTrips().length === 0" class="state-message empty">
-          <p>No journeys found matching your current filter.</p>
-          <button type="button" class="reset-btn" (click)="resetFilters()">Clear Filters</button>
+          <p>No journeys found matching your criteria.</p>
+          <button type="button" class="reset-btn" (click)="resetFilters(searchInput)">Clear Filters</button>
         </div>
       </section>
     </main>
@@ -87,31 +114,62 @@ import { Season, Trip } from '../../models/trip.model';
     .controls-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 1.25rem;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 2.5rem;
+      margin-bottom: 1.25rem;
       background: #ffffff;
-      padding: 1rem 1.25rem;
+      padding: 0.85rem 1.25rem;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+      border: 1px solid #f1f5f9;
 
       .search-box {
+        position: relative;
         flex: 1;
         min-width: 260px;
+        display: flex;
+        align-items: center;
+
+        .search-icon {
+          position: absolute;
+          left: 12px;
+          width: 18px;
+          height: 18px;
+          color: #94a3b8;
+          pointer-events: none;
+        }
 
         input {
           width: 100%;
-          padding: 0.65rem 1rem;
+          padding: 0.65rem 2.2rem 0.65rem 2.4rem;
           border-radius: 8px;
-          border: 1px solid #cbd5e1;
+          border: 1px solid #e2e8f0;
           font-size: 0.95rem;
+          background: #f8fafc;
           outline: none;
-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          transition: all 0.2s ease;
 
           &:focus {
+            background: #ffffff;
             border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+          }
+        }
+
+        .clear-search-btn {
+          position: absolute;
+          right: 10px;
+          background: none;
+          border: none;
+          font-size: 1.25rem;
+          line-height: 1;
+          color: #94a3b8;
+          cursor: pointer;
+          padding: 4px;
+
+          &:hover {
+            color: #475569;
           }
         }
       }
@@ -127,10 +185,10 @@ import { Season, Trip } from '../../models/trip.model';
           border: 1px solid #e2e8f0;
           background: #f8fafc;
           color: #475569;
-          font-size: 0.85rem;
+          font-size: 0.82rem;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.15s ease;
 
           &:hover {
             background: #e2e8f0;
@@ -142,6 +200,34 @@ import { Season, Trip } from '../../models/trip.model';
             color: #ffffff;
             border-color: #0f172a;
           }
+        }
+      }
+    }
+
+    .filter-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.75rem;
+      padding: 0 0.5rem;
+      font-size: 0.9rem;
+      color: #64748b;
+
+      strong {
+        color: #0f172a;
+      }
+
+      .clear-all-link {
+        background: none;
+        border: none;
+        color: #2563eb;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+
+        &:hover {
+          text-decoration: underline;
         }
       }
     }
@@ -191,7 +277,7 @@ import { Season, Trip } from '../../models/trip.model';
   `]
 })
 export class TripsPageComponent implements OnInit {
-  protected store = inject(TripStore);
+  protected readonly store = inject(TripStore);
 
   readonly seasons: (Season | 'ALL')[] = [
     'ALL',
@@ -200,16 +286,23 @@ export class TripsPageComponent implements OnInit {
     'autumn',
     'winter'
   ];
+
   ngOnInit(): void {
     this.store.loadTrips();
   }
 
-  onSearch(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.store.setSearchQuery(input.value);
+  onSearch(query: string): void {
+    this.store.setSearchQuery(query);
   }
 
-  resetFilters(): void {
+  clearSearch(input: HTMLInputElement): void {
+    input.value = '';
+    this.store.setSearchQuery('');
+    input.focus();
+  }
+
+  resetFilters(input: HTMLInputElement): void {
+    input.value = '';
     this.store.setSeason('ALL');
     this.store.setSearchQuery('');
   }
