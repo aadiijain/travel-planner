@@ -6,6 +6,8 @@ import { SeasonBadgeComponent } from '../../shared/ui/season-badge/season-badge.
 import { TripFormModalComponent } from './components/trip-form-modal/trip-form-modal.component';
 import { Trip } from '../../models/trip.model';
 
+const CHECKLIST_KEY_PREFIX = 'wanderlog_packed_essentials_';
+
 @Component({
   selector: 'app-trip-detail-page',
   standalone: true,
@@ -79,7 +81,10 @@ import { Trip } from '../../models/trip.model';
       <div class="content-grid">
         <!-- Day-by-Day Timeline -->
         <section class="itinerary-section">
-          <h2>Day-by-Day Itinerary</h2>
+          <div class="section-header">
+            <h2>Day-by-Day Itinerary</h2>
+            <span class="checklist-hint">💡 Tap any essential chip to mark as packed</span>
+          </div>
 
           <div class="timeline" *ngIf="currentTrip.itinerary && currentTrip.itinerary.length > 0; else noItinerary">
             <div
@@ -107,9 +112,20 @@ import { Trip } from '../../models/trip.model';
                 <p class="stop-location" *ngIf="stop.location">📍 {{ stop.location }}</p>
                 <p class="stop-notes" *ngIf="stop.notes">{{ stop.notes }}</p>
 
+                <!-- Interactive Essentials Checklist -->
                 <div class="essentials-list" *ngIf="stop.essentials && stop.essentials.length > 0">
                   <span class="essentials-label">Essentials:</span>
-                  <span class="essential-chip" *ngFor="let item of stop.essentials">{{ item }}</span>
+                  <button
+                    type="button"
+                    *ngFor="let item of stop.essentials"
+                    class="essential-chip"
+                    [class.packed]="isPacked(stop.id, item)"
+                    (click)="toggleEssential(stop.id, item)"
+                    [title]="isPacked(stop.id, item) ? 'Mark as unpacked' : 'Mark as packed'"
+                  >
+                    <span class="check-icon">{{ isPacked(stop.id, item) ? '✓' : '○' }}</span>
+                    <span class="chip-label">{{ item }}</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -373,11 +389,26 @@ import { Trip } from '../../models/trip.model';
     }
 
     .itinerary-section {
-      h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #0f172a;
+      .section-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
         margin-bottom: 1.75rem;
+
+        h2 {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0;
+        }
+
+        .checklist-hint {
+          font-size: 0.8rem;
+          color: #64748b;
+          font-weight: 500;
+        }
       }
 
       .timeline {
@@ -498,7 +529,7 @@ import { Trip } from '../../models/trip.model';
               display: flex;
               flex-wrap: wrap;
               align-items: center;
-              gap: 0.4rem;
+              gap: 0.45rem;
 
               .essentials-label {
                 font-size: 0.72rem;
@@ -508,12 +539,44 @@ import { Trip } from '../../models/trip.model';
               }
 
               .essential-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.3rem;
                 font-size: 0.75rem;
                 background: #ffffff;
-                border: 1px solid #e2e8f0;
-                color: #475569;
-                padding: 0.15rem 0.5rem;
-                border-radius: 4px;
+                border: 1px solid #cbd5e1;
+                color: #334155;
+                padding: 0.2rem 0.6rem;
+                border-radius: 6px;
+                cursor: pointer;
+                user-select: none;
+                transition: all 0.15s ease;
+
+                .check-icon {
+                  font-size: 0.75rem;
+                  font-weight: 700;
+                  color: #94a3b8;
+                }
+
+                &:hover {
+                  background: #f1f5f9;
+                  border-color: #94a3b8;
+                }
+
+                &.packed {
+                  background: #f0fdf4;
+                  border-color: #86efac;
+                  color: #15803d;
+
+                  .check-icon {
+                    color: #16a34a;
+                  }
+
+                  .chip-label {
+                    text-decoration: line-through;
+                    opacity: 0.8;
+                  }
+                }
               }
             }
           }
@@ -623,6 +686,9 @@ export class TripDetailPageComponent implements OnInit {
   readonly isEditModalOpen = signal<boolean>(false);
   private tripId = this.route.snapshot.paramMap.get('id') ?? '';
 
+  // Track packed items by set of keys formatted as: `${stopId}::${itemName}`
+  readonly packedItems = signal<Set<string>>(new Set<string>());
+
   readonly trip = computed(() => {
     const trips = this.store.trips();
     return trips.find((t) => t.id === this.tripId) ?? null;
@@ -631,6 +697,50 @@ export class TripDetailPageComponent implements OnInit {
   ngOnInit(): void {
     if (this.store.trips().length === 0) {
       this.store.loadTrips();
+    }
+    this.loadPackedState();
+  }
+
+  isPacked(stopId: string, item: string): boolean {
+    return this.packedItems().has(`${stopId}::${item.trim().toLowerCase()}`);
+  }
+
+  toggleEssential(stopId: string, item: string): void {
+    const key = `${stopId}::${item.trim().toLowerCase()}`;
+    const next = new Set(this.packedItems());
+
+    if (next.has(key)) {
+      next.delete(key);
+    } else {
+      next.add(key);
+    }
+
+    this.packedItems.set(next);
+    this.savePackedState(next);
+  }
+
+  private loadPackedState(): void {
+    const raw = localStorage.getItem(`${CHECKLIST_KEY_PREFIX}${this.tripId}`);
+    if (raw) {
+      try {
+        const arr = JSON.parse(raw) as string[];
+        if (Array.isArray(arr)) {
+          this.packedItems.set(new Set(arr));
+        }
+      } catch (e) {
+        console.warn('Failed to parse checklist state', e);
+      }
+    }
+  }
+
+  private savePackedState(state: Set<string>): void {
+    try {
+      localStorage.setItem(
+        `${CHECKLIST_KEY_PREFIX}${this.tripId}`,
+        JSON.stringify(Array.from(state))
+      );
+    } catch (e) {
+      console.warn('Could not persist checklist to storage', e);
     }
   }
 
@@ -642,6 +752,7 @@ export class TripDetailPageComponent implements OnInit {
   onDeleteTrip(id: string, title: string): void {
     const confirmed = window.confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`);
     if (confirmed) {
+      localStorage.removeItem(`${CHECKLIST_KEY_PREFIX}${id}`);
       this.store.deleteTrip(id);
       this.router.navigate(['/trips']);
     }
